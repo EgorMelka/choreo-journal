@@ -169,19 +169,32 @@ button {
 }
 
 .date-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 34px minmax(120px, 1fr) 34px auto 36px;
   gap: 6px;
   align-items: center;
-  flex-wrap: wrap;
 }
 
 .date-row input {
-  min-width: 170px;
+  min-width: 0;
+}
+
+.date-row button {
+  height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+}
+
+.date-row button:nth-of-type(3) {
+  padding: 0 10px;
+  font-size: 13px;
 }
 
 .search-icon {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   padding: 0;
 }
 
@@ -212,14 +225,11 @@ button {
 
 .mini-switches {
   display: grid;
-  grid-template-columns: 1fr auto auto auto auto;
+  grid-template-columns: auto auto auto auto;
   align-items: center;
-  gap: 8px;
+  justify-content: start;
+  gap: 6px;
   margin-bottom: 8px;
-}
-
-.schedule-mini {
-  color: var(--muted);
   font-size: 12px;
 }
 
@@ -269,6 +279,10 @@ button {
 
 .switch input:checked + span {
   background: var(--brand);
+}
+
+.extra-switch input:checked + span {
+  background: #f2b705;
 }
 
 .switch input:checked + span::before {
@@ -326,9 +340,9 @@ button {
   border-radius: 10px 10px 0 0;
   background: #f8fcfa;
   display: grid;
-  grid-template-columns: 34px 1fr 64px 92px 54px 34px;
-  gap: 8px;
-  font-size: 12px;
+  grid-template-columns: 28px minmax(96px, 1fr) 46px 48px 48px 28px;
+  gap: 6px;
+  font-size: 11px;
   color: var(--muted);
 }
 
@@ -362,7 +376,7 @@ button {
 }
 
 .student-row.journal {
-  grid-template-columns: 34px 1fr 64px 92px 54px 34px;
+  grid-template-columns: 28px minmax(96px, 1fr) 46px 48px 48px 28px;
 }
 
 .student-row.all {
@@ -552,28 +566,36 @@ button {
 @media (max-width: 860px) {
   .students-header,
   .student-row.journal {
-    grid-template-columns: 28px 1fr 50px 70px 50px 30px;
-    gap: 6px;
+    grid-template-columns: 24px minmax(84px, 1fr) 40px 44px 44px 24px;
+    gap: 5px;
+    font-size: 11px;
   }
 }
 
 @media (max-width: 760px) {
   .content {
-    padding: 10px;
+    padding: 8px;
   }
 
   .date-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 30px minmax(108px, 1fr) 30px auto 34px;
+    gap: 4px;
   }
 
-  .date-row input {
-    min-width: 0;
-    grid-column: 1 / -1;
+  .date-row button {
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .date-row button:nth-of-type(3) {
+    font-size: 12px;
+    padding: 0 8px;
   }
 
   .mini-switches {
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: auto auto auto auto;
+    gap: 4px;
+    font-size: 11px;
   }
 
   .add-student,
@@ -583,24 +605,29 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .students-header,
+  .student-row.journal {
+    grid-template-columns: 22px minmax(74px, 1fr) 34px 40px 40px 22px;
+    gap: 4px;
+    font-size: 10px;
+  }
+
   .students-header {
-    display: none;
+    padding: 7px 8px;
   }
 
-  .students-list.journal {
-    border-top: 1px solid var(--line);
-    border-radius: 10px;
+  .student-row.journal {
+    align-items: center;
+    padding: 7px 8px;
   }
 
-  .student-row.journal,
   .student-row.all {
     grid-template-columns: 1fr;
     align-items: start;
   }
 
-  .student-row.journal > span:first-child {
-    color: var(--muted);
-    font-size: 12px;
+  .fio-btn {
+    font-size: 14px;
   }
 
   .report-table {

@@ -83,7 +83,6 @@ function App() {
     [data.groups, activeGroupId]
   );
 
-  const monthKeyForJournal = monthFromDate(selectedDate);
   const availableMonths = useMemo(() => monthOptions(data, reportMonth), [data, reportMonth]);
 
   const studentsInActiveGroup = useMemo(() => {
@@ -376,19 +375,13 @@ function App() {
     setStudentCardMonth(monthFromDate(selectedDate));
   }
 
-  function monthlyVisitsForStudent(student: Student): number {
+  function totalVisitsForStudent(student: Student): number {
     const groupDates = data.attendance[student.groupId] ?? {};
-    return Object.entries(groupDates).filter(
-      ([date, ids]) => date.startsWith(monthKeyForJournal) && ids.includes(student.id)
-    ).length;
+    return Object.values(groupDates).reduce(
+      (sum, ids) => (ids.includes(student.id) ? sum + 1 : sum),
+      0
+    );
   }
-
-  const scheduleText = activeGroup
-    ? [...activeGroup.scheduleWeekdays]
-        .sort((a, b) => a - b)
-        .map((day) => weekdayLabel(day))
-        .join(', ')
-    : '';
 
   return (
     <div className="layout">
@@ -454,9 +447,8 @@ function App() {
             </div>
 
             <div className="mini-switches">
-              <span className="schedule-mini">{scheduleText}</span>
-              <span>Отм</span>
-              <label className="switch small">
+              <span>Отменила</span>
+              <label className="switch small state-switch">
                 <input
                   type="checkbox"
                   checked={isCancelledToday}
@@ -464,8 +456,8 @@ function App() {
                 />
                 <span />
               </label>
-              <span>Пров</span>
-              <label className="switch small">
+              <span>Провела</span>
+              <label className="switch small state-switch">
                 <input
                   type="checkbox"
                   checked={isConductedToday}
@@ -500,9 +492,9 @@ function App() {
 
             <div className="students-header">
               <span>№</span>
-              <span>Ученик</span>
-              <span>За мес</span>
-              <span>Присутствовал</span>
+              <span>Ф.И.О.</span>
+              <span>Б.О.</span>
+              <span>Был</span>
               <span>Доп</span>
               <span>✕</span>
             </div>
@@ -520,7 +512,7 @@ function App() {
                       <button className="fio-btn" onClick={() => openStudentCard(student.id)}>
                         {student.fio}
                       </button>
-                      <span>{monthlyVisitsForStudent(student)}</span>
+                      <span>{totalVisitsForStudent(student)}</span>
 
                       <label className="switch small">
                         <input
@@ -534,7 +526,7 @@ function App() {
                         <span />
                       </label>
 
-                      <label className="switch small">
+                      <label className="switch small extra-switch">
                         <input
                           type="checkbox"
                           checked={extra}
