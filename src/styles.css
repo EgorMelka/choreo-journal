@@ -42,22 +42,11 @@ select {
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 8px 10px;
   border-bottom: 1px solid #cde6db;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.93);
   backdrop-filter: blur(5px);
-}
-
-.topbar h1 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.subtitle {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 13px;
 }
 
 .burger {
@@ -65,9 +54,76 @@ select {
   border-radius: 10px;
   background: #ebf9f2;
   color: #0f6e4f;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   cursor: pointer;
+}
+
+.topbar-title {
+  min-width: 0;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.month-income {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f6e4f;
+  white-space: nowrap;
+}
+
+.wallet-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.wallet-popover {
+  position: fixed;
+  top: 48px;
+  right: 8px;
+  z-index: 30;
+  width: min(300px, calc(100vw - 16px));
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 8px 28px rgba(18, 51, 40, 0.16);
+  font-size: 13px;
+}
+
+.wallet-title {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.wallet-popover p {
+  margin: 5px 0;
+}
+
+.wallet-popover ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  max-height: 140px;
+  overflow: auto;
 }
 
 .sidebar {
@@ -76,11 +132,11 @@ select {
   left: -260px;
   width: 250px;
   height: 100%;
-  padding: 70px 12px 16px;
+  padding: 60px 12px 16px;
   border-right: 1px solid #d4e9df;
   background: #fff;
   transition: left 0.2s ease;
-  z-index: 30;
+  z-index: 40;
 }
 
 .sidebar.open {
@@ -90,7 +146,7 @@ select {
 .menu-item {
   width: 100%;
   text-align: left;
-  padding: 11px;
+  padding: 10px;
   margin-bottom: 8px;
   border: 1px solid #d9ece3;
   border-radius: 12px;
@@ -117,23 +173,19 @@ select {
 .content {
   max-width: 1150px;
   margin: 0 auto;
-  padding: 12px;
+  padding: 10px;
 }
 
 .panel {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 12px;
-}
-
-.panel.compact {
   padding: 10px;
 }
 
 .row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: end;
 }
 
@@ -153,8 +205,8 @@ input,
 select {
   border: 1px solid #bdded0;
   border-radius: 10px;
-  padding: 9px 11px;
-  min-height: 38px;
+  padding: 8px 10px;
+  min-height: 36px;
   color: var(--text);
   background: #fff;
 }
@@ -162,7 +214,7 @@ select {
 button {
   border: 0;
   border-radius: 10px;
-  padding: 9px 11px;
+  padding: 8px 10px;
   background: linear-gradient(135deg, var(--brand), var(--brand-strong));
   color: #fff;
   cursor: pointer;
@@ -170,8 +222,8 @@ button {
 
 .date-row {
   display: grid;
-  grid-template-columns: 34px minmax(120px, 1fr) 34px auto 36px;
-  gap: 6px;
+  grid-template-columns: 30px minmax(110px, 1fr) 30px auto 34px;
+  gap: 4px;
   align-items: center;
 }
 
@@ -180,27 +232,30 @@ button {
 }
 
 .date-row button {
-  height: 36px;
+  height: 32px;
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .date-row button:nth-of-type(3) {
-  padding: 0 10px;
-  font-size: 13px;
+  font-size: 12px;
+  padding: 0 8px;
 }
 
 .search-icon {
-  width: 36px;
-  height: 36px;
-  padding: 0;
+  width: 34px;
 }
 
 .journal-search {
   margin-top: 8px;
   width: 100%;
+}
+
+.group-select-mobile {
+  display: none;
+  margin-top: 8px;
 }
 
 .groups-tabs {
@@ -228,21 +283,21 @@ button {
   grid-template-columns: auto auto auto auto;
   align-items: center;
   justify-content: start;
-  gap: 6px;
-  margin-bottom: 8px;
-  font-size: 12px;
+  gap: 4px 6px;
+  margin: 6px 0 8px;
+  font-size: 11px;
 }
 
 .switch {
   position: relative;
-  width: 48px;
-  height: 26px;
+  width: 44px;
+  height: 24px;
   display: inline-block;
 }
 
 .switch.small {
-  width: 44px;
-  height: 24px;
+  width: 40px;
+  height: 22px;
 }
 
 .switch input {
@@ -263,18 +318,13 @@ button {
 .switch span::before {
   content: '';
   position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 20px;
-  height: 20px;
+  left: 2px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #fff;
   transition: 0.2s;
-}
-
-.switch.small span::before {
-  width: 18px;
-  height: 18px;
 }
 
 .switch input:checked + span {
@@ -286,11 +336,7 @@ button {
 }
 
 .switch input:checked + span::before {
-  transform: translateX(20px);
-}
-
-.switch.small input:checked + span::before {
-  transform: translateX(20px);
+  transform: translateX(18px);
 }
 
 .switch input:disabled + span {
@@ -305,44 +351,31 @@ button {
   gap: 8px;
 }
 
-.stats {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.tiny-stats {
+  margin-top: 8px;
+  display: flex;
   gap: 8px;
-}
-
-.stats.two {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.stat-card {
-  border: 1px solid #cae8dc;
-  border-radius: 12px;
-  padding: 9px;
-  background: #f7fcfa;
-}
-
-.stat-card span {
-  display: block;
-  color: var(--muted);
+  align-items: center;
   font-size: 12px;
+  color: var(--muted);
 }
 
-.stat-card strong {
-  font-size: 20px;
+.tiny-stats strong {
+  margin-left: auto;
+  color: var(--text);
+  font-size: 14px;
 }
 
 .students-header {
-  margin-top: 12px;
-  padding: 8px 10px;
+  margin-top: 8px;
+  padding: 6px 8px;
   border: 1px solid var(--line);
   border-radius: 10px 10px 0 0;
   background: #f8fcfa;
   display: grid;
-  grid-template-columns: 28px minmax(96px, 1fr) 46px 48px 48px 28px;
-  gap: 6px;
-  font-size: 11px;
+  grid-template-columns: 22px minmax(74px, 1fr) 34px 40px 40px 22px;
+  gap: 4px;
+  font-size: 10px;
   color: var(--muted);
 }
 
@@ -364,9 +397,9 @@ button {
 
 .student-row {
   display: grid;
-  gap: 8px;
+  gap: 4px;
   align-items: center;
-  padding: 8px 10px;
+  padding: 7px 8px;
   border-bottom: 1px solid var(--line);
   background: #fff;
 }
@@ -376,7 +409,8 @@ button {
 }
 
 .student-row.journal {
-  grid-template-columns: 28px minmax(96px, 1fr) 46px 48px 48px 28px;
+  grid-template-columns: 22px minmax(74px, 1fr) 34px 40px 40px 22px;
+  font-size: 10px;
 }
 
 .student-row.all {
@@ -389,12 +423,13 @@ button {
   color: var(--text);
   border: 0;
   padding: 0;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .icon-cross {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   border-radius: 999px;
   background: #ffe8e8;
@@ -404,15 +439,24 @@ button {
 .group-badge {
   border: 1px solid #cce9dd;
   border-radius: 999px;
-  padding: 5px 10px;
+  padding: 4px 8px;
   color: #245543;
   background: #f4fbf7;
   font-size: 12px;
 }
 
+.row-actions {
+  display: flex;
+  gap: 6px;
+}
+
 .danger {
   background: #ffe9e9;
   color: var(--danger);
+}
+
+.danger-soft {
+  background: #fff3f3;
 }
 
 .empty {
@@ -475,6 +519,29 @@ button {
   border-bottom: 1px solid var(--line);
   padding: 10px 8px;
   text-align: left;
+}
+
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: #113f31;
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.undo-toast button {
+  background: #fff;
+  color: #0f6e4f;
+  border-radius: 999px;
+  padding: 4px 10px;
 }
 
 .modal-backdrop {
@@ -563,62 +630,26 @@ button {
   padding-left: 18px;
 }
 
-@media (max-width: 860px) {
-  .students-header,
-  .student-row.journal {
-    grid-template-columns: 24px minmax(84px, 1fr) 40px 44px 44px 24px;
-    gap: 5px;
-    font-size: 11px;
-  }
-}
-
 @media (max-width: 760px) {
-  .content {
-    padding: 8px;
+  .topbar h1 {
+    font-size: 16px;
   }
 
-  .date-row {
-    grid-template-columns: 30px minmax(108px, 1fr) 30px auto 34px;
-    gap: 4px;
-  }
-
-  .date-row button {
-    height: 32px;
-    font-size: 14px;
-  }
-
-  .date-row button:nth-of-type(3) {
+  .month-income {
     font-size: 12px;
-    padding: 0 8px;
   }
 
-  .mini-switches {
-    grid-template-columns: auto auto auto auto;
-    gap: 4px;
-    font-size: 11px;
+  .groups-tabs-desktop {
+    display: none;
+  }
+
+  .group-select-mobile {
+    display: block;
   }
 
   .add-student,
-  .add-group,
-  .stats,
-  .stats.two {
+  .add-group {
     grid-template-columns: 1fr;
-  }
-
-  .students-header,
-  .student-row.journal {
-    grid-template-columns: 22px minmax(74px, 1fr) 34px 40px 40px 22px;
-    gap: 4px;
-    font-size: 10px;
-  }
-
-  .students-header {
-    padding: 7px 8px;
-  }
-
-  .student-row.journal {
-    align-items: center;
-    padding: 7px 8px;
   }
 
   .student-row.all {
@@ -626,8 +657,12 @@ button {
     align-items: start;
   }
 
-  .fio-btn {
-    font-size: 14px;
+  .row-actions {
+    width: 100%;
+  }
+
+  .row-actions button {
+    flex: 1;
   }
 
   .report-table {

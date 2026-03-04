@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createDefaultData, loadData, saveData } from './storage';
 import type { AppData, Group, Student, ViewName } from './types';
 import {
@@ -62,6 +62,9 @@ function App() {
   const [reportMonth, setReportMonth] = useState(() => monthFromDate(toISODate(new Date())));
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [studentCardMonth, setStudentCardMonth] = useState(() => monthFromDate(toISODate(new Date())));
+  const [walletOpen, setWalletOpen] = useState(false);
+  const [undoDelete, setUndoDelete] = useState<{ fio: string; snapshot: AppData } | null>(null);
+  const deleteTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     saveData(data);
@@ -77,6 +80,14 @@ function App() {
       setActiveGroupId(data.groups[0].id);
     }
   }, [data, activeGroupId]);
+
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current !== null) {
+        window.clearTimeout(deleteTimerRef.current);
+      }
+    };
+  }, []);
 
   const activeGroup = useMemo(
     () => data.groups.find((group) => group.id === activeGroupId) ?? data.groups[0],
@@ -102,10 +113,7 @@ function App() {
     [data.extraAttendance, activeGroup, selectedDate]
   );
 
-  const isCancelledToday = activeGroup
-    ? Boolean(data.cancellations[activeGroup.id]?.[selectedDate])
-    : false;
-
+  const isCancelledToday = activeGroup ? Boolean(data.cancellations[activeGroup.id]?.[selectedDate]) : false;
   const isFutureLessonDate = isFutureDate(selectedDate);
   const isConductedToday =
     activeGroup && !isCancelledToday && !isFutureLessonDate
@@ -150,13 +158,7 @@ function App() {
       });
 
       const avgAttendees = lessonsCount > 0 ? attendeesTotal / lessonsCount : 0;
-
-      return {
-        group,
-        income,
-        lessonsCount,
-        avgAttendees,
-      };
+      return { group, income, lessonsCount, avgAttendees };
     });
 
     const totalIncome = rows.reduce((sum, row) => sum + row.income, 0);
@@ -168,6 +170,56 @@ function App() {
 
     return { rows, totalIncome, totalLessons, totalAvg };
   }, [data.attendance, data.extraAttendance, data.cancellations, data.conducted, data.groups, reportMonth]);
+
+  const monthIncomeHeader = useMemo(() => {
+    const currentMonth = monthFromDate(selectedDate);
+    const todayIso = toISODate(new Date());
+
+    return data.groups.reduce((sum, group) => {
+      const dates = Object.keys(data.conducted[group.id] ?? {}).filter(
+        (date) => date.startsWith(currentMonth) && date <= todayIso && !data.cancellations[group.id]?.[date]
+      );
+
+      dates.forEach((date) => {
+        const mainCount = data.attendance[group.id]?.[date]?.length ?? 0;
+        const extraCount = data.extraAttendance[group.id]?.[date]?.length ?? 0;
+        sum += incomeForLesson(mainCount);
+        if (extraCount > 0) sum += incomeForLesson(extraCount);
+      });
+
+      return sum;
+    }, 0);
+  }, [data, selectedDate]);
+
+  const walletSummary = useMemo(() => {
+    if (isFutureDate(selectedDate)) {
+      return { income: 0, names: [] as string[] };
+    }
+
+    const ids = new Set<string>();
+    let income = 0;
+
+    data.groups.forEach((group) => {
+      if (!data.conducted[group.id]?.[selectedDate]) return;
+      if (data.cancellations[group.id]?.[selectedDate]) return;
+
+      const mainIds = data.attendance[group.id]?.[selectedDate] ?? [];
+      const extraIds = data.extraAttendance[group.id]?.[selectedDate] ?? [];
+
+      mainIds.forEach((id) => ids.add(id));
+      extraIds.forEach((id) => ids.add(id));
+
+      income += incomeForLesson(mainIds.length);
+      if (extraIds.length > 0) income += incomeForLesson(extraIds.length);
+    });
+
+    const names = data.students
+      .filter((student) => ids.has(student.id))
+      .map((student) => student.fio)
+      .sort((a, b) => a.localeCompare(b, 'ru'));
+
+    return { income, names };
+  }, [data, selectedDate]);
 
   const studentsList = useMemo(() => {
     const term = studentsSearch.trim().toLowerCase();
@@ -217,27 +269,6 @@ function App() {
     return { ...map, [groupId]: nextGroupMap };
   }
 
-  function toggleLessonCancelled(groupId: string, cancelled: boolean) {
-    updateData((prev) => ({
-      ...prev,
-      cancellations: setBooleanMapValue(prev.cancellations, groupId, selectedDate, cancelled),
-      conducted: cancelled
-        ? setBooleanMapValue(prev.conducted, groupId, selectedDate, false)
-        : prev.conducted,
-    }));
-  }
-
-  function toggleLessonConducted(groupId: string, conducted: boolean) {
-    if (isFutureLessonDate) return;
-    updateData((prev) => ({
-      ...prev,
-      conducted: setBooleanMapValue(prev.conducted, groupId, selectedDate, conducted),
-      cancellations: conducted
-        ? setBooleanMapValue(prev.cancellations, groupId, selectedDate, false)
-        : prev.cancellations,
-    }));
-  }
-
   function updateIdsMap(
     map: Record<string, Record<string, string[]>>,
     groupId: string,
@@ -258,6 +289,27 @@ function App() {
         [date]: Array.from(nextSet),
       },
     };
+  }
+
+  function toggleLessonCancelled(groupId: string, cancelled: boolean) {
+    updateData((prev) => ({
+      ...prev,
+      cancellations: setBooleanMapValue(prev.cancellations, groupId, selectedDate, cancelled),
+      conducted: cancelled
+        ? setBooleanMapValue(prev.conducted, groupId, selectedDate, false)
+        : prev.conducted,
+    }));
+  }
+
+  function toggleLessonConducted(groupId: string, conducted: boolean) {
+    if (isFutureLessonDate) return;
+    updateData((prev) => ({
+      ...prev,
+      conducted: setBooleanMapValue(prev.conducted, groupId, selectedDate, conducted),
+      cancellations: conducted
+        ? setBooleanMapValue(prev.cancellations, groupId, selectedDate, false)
+        : prev.cancellations,
+    }));
   }
 
   function toggleAttendance(groupId: string, studentId: string, checked: boolean) {
@@ -325,6 +377,59 @@ function App() {
     }));
   }
 
+  function removeStudentEverywhere(prev: AppData, studentId: string): AppData {
+    const stripFromMap = (map: Record<string, Record<string, string[]>>) => {
+      const nextMap: Record<string, Record<string, string[]>> = {};
+
+      Object.entries(map).forEach(([groupId, dateMap]) => {
+        const nextDateMap: Record<string, string[]> = {};
+        Object.entries(dateMap).forEach(([date, ids]) => {
+          nextDateMap[date] = ids.filter((id) => id !== studentId);
+        });
+        nextMap[groupId] = nextDateMap;
+      });
+
+      return nextMap;
+    };
+
+    return {
+      ...prev,
+      students: prev.students.filter((student) => student.id !== studentId),
+      attendance: stripFromMap(prev.attendance),
+      extraAttendance: stripFromMap(prev.extraAttendance),
+    };
+  }
+
+  function deleteStudentWithUndo(student: Student) {
+    const snapshot = data;
+
+    setData((prev) => removeStudentEverywhere(prev, student.id));
+    setUndoDelete({ fio: student.fio, snapshot });
+
+    if (selectedStudentId === student.id) {
+      setSelectedStudentId(null);
+    }
+
+    if (deleteTimerRef.current !== null) {
+      window.clearTimeout(deleteTimerRef.current);
+    }
+
+    deleteTimerRef.current = window.setTimeout(() => {
+      setUndoDelete(null);
+      deleteTimerRef.current = null;
+    }, 5000);
+  }
+
+  function undoDeleteStudent() {
+    if (!undoDelete) return;
+    if (deleteTimerRef.current !== null) {
+      window.clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+    }
+    setData(undoDelete.snapshot);
+    setUndoDelete(null);
+  }
+
   function updateStudent(studentId: string, patch: Partial<Student>) {
     updateData((prev) => ({
       ...prev,
@@ -377,10 +482,7 @@ function App() {
 
   function totalVisitsForStudent(student: Student): number {
     const groupDates = data.attendance[student.groupId] ?? {};
-    return Object.values(groupDates).reduce(
-      (sum, ids) => (ids.includes(student.id) ? sum + 1 : sum),
-      0
-    );
+    return Object.values(groupDates).reduce((sum, ids) => (ids.includes(student.id) ? sum + 1 : sum), 0);
   }
 
   return (
@@ -389,11 +491,34 @@ function App() {
         <button className="burger" onClick={() => setMenuOpen((prev) => !prev)} aria-label="Меню">
           ☰
         </button>
-        <div>
+        <div className="topbar-title">
           <h1>Журнал хореографа</h1>
           <p className="subtitle">{formatRuDate(selectedDate)}</p>
         </div>
+        <div className="topbar-right">
+          <div className="month-income">{formatMoney(monthIncomeHeader)} ₽</div>
+          <button className="wallet-btn" onClick={() => setWalletOpen((prev) => !prev)}>
+            💼
+          </button>
+        </div>
       </header>
+
+      {walletOpen ? (
+        <div className="wallet-popover">
+          <p className="wallet-title">За {formatRuDate(selectedDate)}</p>
+          <p>Доход: <strong>{formatMoney(walletSummary.income)} ₽</strong></p>
+          <p>Было учеников: <strong>{walletSummary.names.length}</strong></p>
+          {walletSummary.names.length > 0 ? (
+            <ul>
+              {walletSummary.names.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>Никого не отмечено</p>
+          )}
+        </div>
+      ) : null}
 
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         {(['journal', 'reports', 'students', 'groups'] as ViewName[]).map((item) => (
@@ -405,7 +530,13 @@ function App() {
               setMenuOpen(false);
             }}
           >
-            {item === 'journal' ? 'Журнал' : item === 'reports' ? 'Отчёты' : item === 'students' ? 'Ученики' : 'Группы'}
+            {item === 'journal'
+              ? 'Журнал'
+              : item === 'reports'
+                ? 'Отчёты'
+                : item === 'students'
+                  ? 'Ученики'
+                  : 'Группы'}
           </button>
         ))}
       </aside>
@@ -434,7 +565,17 @@ function App() {
               />
             ) : null}
 
-            <div className="groups-tabs">
+            <div className="group-select-mobile">
+              <select value={activeGroup.id} onChange={(event) => setActiveGroupId(event.target.value)}>
+                {data.groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="groups-tabs groups-tabs-desktop">
               {data.groups.map((group) => (
                 <button
                   key={group.id}
@@ -477,17 +618,10 @@ function App() {
               <button onClick={addStudentToGroup}>+ Ученик</button>
             </div>
 
-            <div className="stats two">
-              <div className="stat-card">
-                <span>Пришло / Доп</span>
-                <strong>
-                  {attendeesForActiveGroup.length} / {extraForActiveGroup.length}
-                </strong>
-              </div>
-              <div className="stat-card">
-                <span>Доход за день</span>
-                <strong>{formatMoney(activeGroupIncome)} ₽</strong>
-              </div>
+            <div className="tiny-stats">
+              <span>П: {attendeesForActiveGroup.length}</span>
+              <span>Д: {extraForActiveGroup.length}</span>
+              <strong>{formatMoney(activeGroupIncome)} ₽</strong>
             </div>
 
             <div className="students-header">
@@ -640,9 +774,14 @@ function App() {
                         {student.fio}
                       </button>
                       <span className="group-badge">{group?.name ?? 'Без группы'}</span>
-                      <button className="danger" onClick={() => archiveStudent(student)}>
-                        {student.archived ? 'Вернуть' : 'В архив'}
-                      </button>
+                      <div className="row-actions">
+                        <button className="danger" onClick={() => archiveStudent(student)}>
+                          {student.archived ? 'Вернуть' : 'В архив'}
+                        </button>
+                        <button className="danger danger-soft" onClick={() => deleteStudentWithUndo(student)}>
+                          Удалить
+                        </button>
+                      </div>
                     </li>
                   );
                 })
@@ -712,6 +851,13 @@ function App() {
         ) : null}
       </main>
 
+      {undoDelete ? (
+        <div className="undo-toast">
+          <span>Удален: {undoDelete.fio}</span>
+          <button onClick={undoDeleteStudent}>Отменить</button>
+        </div>
+      ) : null}
+
       {selectedStudent ? (
         <div className="modal-backdrop" onClick={() => setSelectedStudentId(null)}>
           <div className="modal" onClick={(event) => event.stopPropagation()}>
@@ -726,7 +872,9 @@ function App() {
                 <input
                   value={selectedStudent.fio}
                   onChange={(event) =>
-                    updateStudent(selectedStudent.id, { fio: normalizeFio(event.target.value) || selectedStudent.fio })
+                    updateStudent(selectedStudent.id, {
+                      fio: normalizeFio(event.target.value) || selectedStudent.fio,
+                    })
                   }
                 />
               </label>
@@ -757,9 +905,7 @@ function App() {
               </label>
             </div>
 
-            <p className="age-line">
-              Возраст: {ageFromBirthDate(selectedStudent.birthDate) ?? '—'}
-            </p>
+            <p className="age-line">Возраст: {ageFromBirthDate(selectedStudent.birthDate) ?? '—'}</p>
 
             <div className="month-switch">
               <button onClick={() => setStudentCardMonth((prev) => prevMonth(prev))}>←</button>
